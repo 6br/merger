@@ -74,7 +74,8 @@ chooseLonger x y | lenx > leny = x
 --flattenWithMonotonic :: (Interval k e) => ((k,v) -> (k,v) -> Maybe (k,v)) -> IntervalMap k v -> IntervalMap k v
 --flattenWithMonotonic combine m = fromDistinctAscList (combineSuccessive combine m)
 -}
-result = IvMap.flattenWith chooseLonger sampleApps
+priolizedLonger :: Candidates -> Candidates
+priolizedLonger x = IvMap.flattenWith chooseLonger x
 
 --lambda :: Maybe (IvMap.Interval a) -> Maybe (IvMap.Interval a) -> Maybe (IvMap.Interval a)
 --lambda :: Maybe (IvMap.Interval a) -> Maybe (IvMap.Interval a) -> Maybe (IvMap.Interval a)
@@ -125,8 +126,8 @@ main3 = do
   let bind = (show . stringToPartialData) <$> lines inp
   mapM_ putStrLn bind
 
-main :: IO ()
-main = do
+main4 :: IO ()
+main4 = do
   inp <- getContents -- Use Data.Text
   --let ls = lines inp
   --let ls2 = fmap (toLazyByteString . stringUtf8) $ lines inp
@@ -162,11 +163,11 @@ resultTest = do
   --let bind2 = liftPartial $ bind
   case bind of
     Nothing -> return noCandidates
-    Just x  -> return $ pDataToIvMap x
+    Just x  -> return $ priolizedLonger $ pDataToIvMap x
 
-printTest = do
+main = do
   inp <- resultTest
-  printAsString inp
+  putAsString inp
 
 candidatesShow :: Candidates -> [RawData]
 candidatesShow x = snd <$> toAscList x
@@ -174,9 +175,16 @@ candidatesShow x = snd <$> toAscList x
 candidatesFst :: Candidates -> [IvMap.Interval Index]
 candidatesFst x = fst <$> toAscList x
 
---convertString =  T.unlines $ TE.decodeUtf8 <$> candidatesShow sampleApps
+--convertString x =  T.unlines $ TE.decodeUtf8 <$> candidatesShow x
 
 printAsString :: Candidates -> IO ()
 printAsString x = mapM_ print $ candidatesShow x
 
+putAsString :: Candidates -> IO ()
+putAsString x = mapM_ BS.putStrLn $ candidatesShow x
+
+putRegion :: Candidates -> IO ()
+putRegion x = mapM_ print $ candidatesFst x
+
 pmap =  mapM_ printAsString exampleToCandidates
+
